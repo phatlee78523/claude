@@ -1,47 +1,44 @@
 # claude
 
-Toolkit and worked example for building competition-ready ML challenges.
-
-## Contents
-
-### [`build-ml-challenges/`](build-ml-challenges/)
+## build-ml-challenges
 
 An agent skill for designing, implementing, hardening, and reviewing
-machine-learning challenges. Entry point: [SKILL.md](build-ml-challenges/SKILL.md).
-Includes reference guides (anti-cheat, description templates, release gates,
-split stability) and two audit scripts (`audit_grader.py`, `check_stability.py`,
-requiring `numpy` + `pandas`).
+competition-ready machine-learning challenges. It covers challenge ideation,
+dataset sourcing and license verification, `prepare.py`/`grade.py`
+construction, anti-cheat audits, public/private split stability, agent
+baseline evaluation, and final packaging.
 
-### [`arithmetic-word-problems/`](arithmetic-word-problems/)
+The skill entry point is [build-ml-challenges/SKILL.md](build-ml-challenges/SKILL.md).
 
-A complete challenge built with that skill from the GSM8K corpus (MIT license,
-Cobbe et al. 2021): predict the final integer answer of a multi-step arithmetic
-word problem from its text alone.
+### Layout
 
-- `source-data/` — original GSM8K parquet files (`main` and `socratic` configs)
-  plus the upstream dataset card and metadata.
-- `prepare.py` — deterministic packaging from the source parquet files,
-  opaque IDs, unit-level public/private split.
-- `grade.py` — exact-match accuracy with strict validation (floor 0.0 for any
-  malformed submission).
-- `description.md` / `dataset-description.md` — challenge statement and dataset
-  record.
-- `public/` — train (7,473 rows), test (1,319 rows), sample submission.
-- `private/answer.csv` — held-out answers with visibility split. **Note: this
-  repository is public, so test answers are visible here; treat the challenge
-  as a reference build, not a live blind competition.**
-- `audit/` — grader audit, stability audit, shortcut baselines, and packaging
-  reports; see [release-report.md](arithmetic-word-problems/release-report.md)
-  for the full gate summary.
+```
+build-ml-challenges/
+├── SKILL.md                          # Skill entry point and workflow
+├── agents/
+│   └── openai.yaml                   # Interface metadata (display name, default prompt)
+├── references/
+│   ├── anti-cheat.md                 # Anti-cheat and shortcut audit guidance
+│   ├── description-template.md       # Challenge/dataset description templates
+│   ├── release-gates.md              # Release-gate checklist
+│   └── split-stability.md            # Split visibility and rank-stability gates
+└── scripts/
+    ├── audit_grader.py               # Audits strict submission validation in grade.py
+    └── check_stability.py            # Audits visibility integrity and score stability
+```
 
-To regenerate the challenge package from the source data:
+### Scripts
+
+Both scripts require `numpy` and `pandas`, print a JSON report, and exit
+non-zero on any audit failure.
 
 ```bash
-cd arithmetic-word-problems
-python prepare.py \
-  --train-parquet source-data/main/train-00000-of-00001.parquet \
-  --test-parquet source-data/main/test-00000-of-00001.parquet \
-  --socratic-train-parquet source-data/socratic/train-00000-of-00001.parquet \
-  --socratic-test-parquet source-data/socratic/test-00000-of-00001.parquet \
-  --output-dir .
+python build-ml-challenges/scripts/audit_grader.py \
+  --answers private/answer.csv --oracle audit/oracle_submission.csv \
+  --grade grade.py --id-col id --floor 0.0 --perfect 1.0
+
+python build-ml-challenges/scripts/check_stability.py \
+  --answers private/answer.csv --oracle audit/oracle.csv \
+  --grade grade.py --unit-col source_unit --id-col id \
+  --peer-submissions audit/noisy_*.csv --solver-gap 0.03
 ```
