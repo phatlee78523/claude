@@ -1,4 +1,0 @@
-interface:
-  display_name: "Build ML Challenges"
-  short_description: "Design and validate robust ML challenges"
-  default_prompt: "Use $build-ml-challenges to design, build, and validate a competition-ready ML challenge."

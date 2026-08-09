@@ -1,0 +1,25 @@
+{
+  "constant_majority_train_answer": {
+    "value": "4",
+    "accuracy": 0.026535253980288095
+  },
+  "last_number_in_question": {
+    "accuracy": 0.022744503411675512
+  },
+  "max_number_in_question": {
+    "accuracy": 0.01288855193328279
+  },
+  "first_number_in_question": {
+    "accuracy": 0.01819560272934041
+  },
+  "row_order_vs_answer_spearman": {
+    "spearman": -0.01126577012157988
+  },
+  "tfidf_1nn_train_lookup": {
+    "accuracy": 0.011372251705837756,
+    "max_similarity_mean": 0.27062684614872684
+  },
+  "id_hash_vs_answer_spearman": {
+    "spearman": 0.003029871302403855
+  }
+}
