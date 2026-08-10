@@ -72,11 +72,11 @@ The first `grade.py` returned 0.0 for every submission including the oracle. Cau
 
 | File | SHA-256 (16) / count | Size |
 | --- | --- | --- |
-| `public/train_labels.csv` | c26b60b16bfe8ede | 48 KB |
-| `public/test.csv` | 0629ea4a841031e0 | 8 KB |
-| `public/train_normal.csv` | 385045e5b1c35ced | 202 KB |
-| `public/sample_submission.csv` | 3c6ca21ec7f678a6 | 8 KB |
+| `train_labels.csv` | c26b60b16bfe8ede | 48 KB |
+| `test.csv` | 0629ea4a841031e0 | 8 KB |
+| `train_normal.csv` | 385045e5b1c35ced | 202 KB |
+| `sample_submission.csv` | 3c6ca21ec7f678a6 | 8 KB |
 | `private/answer.csv` | fa87c5450e8eac48 | 13 KB |
-| `public/train_defective/` | 958 files | 176.3 MB |
-| `public/test/` | 242 files | 43.9 MB |
-| `public/train_normal/` | 9,621 files | 1,695.0 MB |
+| `images/train_defective/` | 958 files | 176.3 MB |
+| `images/test/` | 242 files | 43.9 MB |
+| `images/train_normal/` | 9,621 files | 1,695.0 MB |

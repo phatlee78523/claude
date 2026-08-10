@@ -24,11 +24,14 @@ Given a photograph of a defective manufactured part, predict the axis-aligned bo
 
 ## Files
 
-- `train_defective/` — 958 JPEG images of defective parts, named `<id>.jpg`.
+The three image folders live under a single `images/` directory; the CSV files sit
+beside it at the top level.
+
+- `images/train_defective/` — 958 JPEG images of defective parts, named `<id>.jpg`.
 - `train_labels.csv` — 958 rows, columns `id`, `part_type`, `width`, `height`, `x_min`, `y_min`, `x_max`, `y_max`.
-- `train_normal/` — 9,621 JPEG images of flawless parts, named `<id>.jpg`.
+- `images/train_normal/` — 9,621 JPEG images of flawless parts, named `<id>.jpg`.
 - `train_normal.csv` — 9,621 rows, columns `id`, `part_type`.
-- `test/` — 242 JPEG images of defective parts, named `<id>.jpg`.
+- `images/test/` — 242 JPEG images of defective parts, named `<id>.jpg`.
 - `test.csv` — 242 rows, columns `id`, `part_type`, `width`, `height`.
 - `sample_submission.csv` — 242 rows in the required submission format, filled with a whole-image box as a placeholder.
 

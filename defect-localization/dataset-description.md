@@ -13,13 +13,13 @@ Challenge-ready repackage of VisA (Visual Anomaly), a collection of 10,821 studi
 
 ## File Structure
 
-- `public/train_defective/` — 958 JPEG images, `<id>.jpg`, 176.3 MB.
-- `public/train_labels.csv` — 958 rows: `id`, `part_type`, `width`, `height`, `x_min`, `y_min`, `x_max`, `y_max`.
-- `public/train_normal/` — 9,621 JPEG images, `<id>.jpg`, 1,695.0 MB.
-- `public/train_normal.csv` — 9,621 rows: `id`, `part_type`.
-- `public/test/` — 242 JPEG images, `<id>.jpg`, 43.9 MB.
-- `public/test.csv` — 242 rows: `id`, `part_type`, `width`, `height`.
-- `public/sample_submission.csv` — 242 rows: `id`, `x_min`, `y_min`, `x_max`, `y_max`.
+- `images/train_defective/` — 958 JPEG images, `<id>.jpg`, 176.3 MB.
+- `train_labels.csv` — 958 rows: `id`, `part_type`, `width`, `height`, `x_min`, `y_min`, `x_max`, `y_max`.
+- `images/train_normal/` — 9,621 JPEG images, `<id>.jpg`, 1,695.0 MB.
+- `train_normal.csv` — 9,621 rows: `id`, `part_type`.
+- `images/test/` — 242 JPEG images, `<id>.jpg`, 43.9 MB.
+- `test.csv` — 242 rows: `id`, `part_type`, `width`, `height`.
+- `sample_submission.csv` — 242 rows: `id`, `x_min`, `y_min`, `x_max`, `y_max`.
 - `private/answer.csv` — 242 rows: `id`, `x_min`, `y_min`, `x_max`, `y_max`, `width`, `height`, `visibility`, `unit_id`. Grading only; never distributed.
 
 Total public package 1.92 GB; private package 12.9 KB.

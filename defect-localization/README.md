@@ -30,7 +30,12 @@ source release.
 curl -O https://amazon-visual-anomaly.s3.us-west-2.amazonaws.com/VisA_20220922.tar
 mkdir visa && tar -xf VisA_20220922.tar -C visa
 python prepare.py --visa-root visa --output-dir .
+cd public && zip -0 -r ../images.zip train_defective train_normal test
 ```
+
+The released dataset nests the three image folders under `images/`, which is how
+the hosting platform extracts an archive named `images.zip`; the four CSV files
+sit beside it at the top level.
 
 Requires `numpy`, `pandas`, `pillow`. Deterministic: fixed hash salt and split
 seed 20260810, 92 s runtime, 1.8 GB peak RSS.
