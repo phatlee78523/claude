@@ -11,6 +11,7 @@ Build a challenge whose difficulty comes from learnable generalization, not leak
 
 - Read [references/description-template.md](references/description-template.md) whenever drafting or revising dataset or challenge copy.
 - Read [references/anti-cheat.md](references/anti-cheat.md) before designing targets, writing `prepare.py`, or accepting an apparently strong baseline.
+- Read [references/source-selection.md](references/source-selection.md) before evaluating or downloading a candidate dataset.
 - Read [references/split-stability.md](references/split-stability.md) before choosing train/test or public/private membership.
 - Read [references/release-gates.md](references/release-gates.md) before packaging, reviewer handoff, or approval.
 
