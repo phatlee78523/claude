@@ -1,0 +1,8 @@
+{
+  "đoán nguyên ảnh": 0.0422,
+  "hộp hằng số giữa ảnh": 0.0283,
+  "hộp TB theo loại linh kiện": 0.0804,
+  "hộp union theo loại": 0.0918,
+  "luật từ mã ID": 0.018,
+  "1-NN ảnh giống nhất trong train": 0.065
+}

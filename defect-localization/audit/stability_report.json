@@ -1,0 +1,41 @@
+{
+  "status": "PASS",
+  "crossed_unit_count": 0,
+  "crossed_unit_examples": [],
+  "visibility": {
+    "public": {
+      "rows": 60,
+      "units": 60
+    },
+    "private": {
+      "rows": 182,
+      "units": 180
+    }
+  },
+  "public_unit_fraction": 0.25,
+  "oracle_scores": {
+    "public": 1.0,
+    "private": 1.0
+  },
+  "oracle_absolute_gap": 0.0,
+  "peer_private_scores": [
+    0.5127409552349148,
+    0.5141921897202028,
+    0.5091876030080107,
+    0.49194371533635783,
+    0.5335800282725283,
+    0.5198748574749462,
+    0.5163951086039179,
+    0.5186462517948174,
+    0.5015064916760378,
+    0.5126596138340449,
+    0.5009645032183326,
+    0.5167757832966156
+  ],
+  "peer_score_sd": 0.01070342201527168,
+  "peer_score_range": 0.04163631293617043,
+  "required_solver_gap_2sd": 0.02140684403054336,
+  "preferred_solver_gap_3sd": 0.032110266045815045,
+  "supplied_solver_gap": 0.05,
+  "failures": []
+}

@@ -42,3 +42,11 @@ python build-ml-challenges/scripts/check_stability.py \
   --grade grade.py --unit-col source_unit --id-col id \
   --peer-submissions audit/noisy_*.csv --solver-gap 0.03
 ```
+
+### [`defect-localization/`](defect-localization/)
+
+A complete challenge built with the skill from the VisA corpus (CC BY 4.0,
+Amazon): given a photograph of a defective manufactured part, predict the
+bounding box enclosing the defect. Mean-IoU metric, 1,195 independent units,
+all automatable release gates passing. See
+[release-report.md](defect-localization/release-report.md).

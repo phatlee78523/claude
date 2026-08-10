@@ -1,0 +1,49 @@
+{
+  "packaging_checks": {
+    "test.csv không chứa đáp án": true,
+    "id train/test rời nhau": true,
+    "id answer khớp test": true,
+    "số ảnh train khớp csv": true,
+    "số ảnh test khớp csv": true,
+    "số ảnh normal khớp csv": true,
+    "sample_submission hợp lệ": true,
+    "hộp hợp lệ trong ảnh": true,
+    "id đều là mã ẩn danh 12 hex": true,
+    "0 đơn vị vượt visibility": true
+  },
+  "artifacts": {
+    "public/train_labels.csv": {
+      "sha256": "c26b60b16bfe8ede",
+      "bytes": 41432
+    },
+    "public/test.csv": {
+      "sha256": "0629ea4a841031e0",
+      "bytes": 6540
+    },
+    "public/train_normal.csv": {
+      "sha256": "385045e5b1c35ced",
+      "bytes": 163570
+    },
+    "public/sample_submission.csv": {
+      "sha256": "3c6ca21ec7f678a6",
+      "bytes": 6461
+    },
+    "private/answer.csv": {
+      "sha256": "fa87c5450e8eac48",
+      "bytes": 12897
+    },
+    "public/train_defective/": {
+      "files": 958,
+      "bytes": 176258725
+    },
+    "public/test/": {
+      "files": 242,
+      "bytes": 43896906
+    },
+    "public/train_normal/": {
+      "files": 9621,
+      "bytes": 1695021925
+    }
+  },
+  "all_pass": true
+}
