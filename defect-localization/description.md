@@ -6,7 +6,7 @@ When a manufactured part comes off an inspection line showing damage, the questi
 
 This challenge is that measurement problem. Each image is one manufactured part photographed in a fixed rig — same lighting, same viewpoint, same placement — and the task is to estimate a single quantity: how much of the frame the damage occupies, in parts per million. Nothing has to be outlined or marked; one number per image is the entire output.
 
-The measurement is hard because the quantity spans three orders of magnitude, from a couple of hundred parts per million to a fifth of the image, and because the surrounding part looks correct and nearly identical from photo to photo. Since the rig is fixed, overall appearance says almost nothing about severity — two images of the same part type, one barely marked and one badly damaged, differ in a small fraction of their pixels.
+The measurement is hard because the quantity spans four orders of magnitude across the release — from 20 parts per million, a speck, to 429,828, nearly half the frame — and because the surrounding part looks correct and nearly identical from photo to photo. Since the rig is fixed, overall appearance says almost nothing about severity — two images of the same part type, one barely marked and one badly damaged, differ in a small fraction of their pixels.
 
 It is harder still because of how the data is split. Labelled examples are released for **nine** kinds of part. Scoring happens entirely on **three other kinds**, for which no labelled example exists at all. What is released for those three, in quantity, is flawless photographs: 3,004 images of undamaged units. So a model cannot calibrate severity against labelled examples of the parts it will be measured on. It has to learn from nine other part types what damage costs in area terms, and carry that to a shape, material and failure mode whose damaged appearance it has never had a number attached to.
 
@@ -14,7 +14,7 @@ It is harder still because of how the data is split. Labelled examples are relea
 
 Given a photograph of a manufactured part known to be damaged, predict `extent_ppm`: the area of the damaged region expressed in parts per million of the total image area, as a single positive integer.
 
-A value of 10,000 means the damage covers 1% of the frame. Every test image contains damage, so the answer is always at least 1; the reference values in this release run from 130 to 212,687.
+A value of 10,000 means the damage covers 1% of the frame. Every test image contains damage, so the answer is always at least 1. Reference values run from 20 to 429,828 across the release; in the labelled training set the median is 10,871.
 
 This is a scalar regression task. Each image produces exactly one number. There is nothing to outline, no region to return, no class to assign, no confidence to report, and no threshold to tune.
 
@@ -27,7 +27,7 @@ The split is **leave-part-types-out**, not a random partition:
 - The nine remaining types supply all 900 labelled training images.
 - Flawless, unlabelled photographs are released for **all twelve types**, including the three scored ones.
 
-This protocol is the point of the challenge. A model fitted to the severity distribution of nine part types is asked to measure three it has never seen measured. Predicting a constant learned from the training types — the natural shortcut — scores 0.78, against 0.23 for a model that estimates each image correctly to within a factor of about 1.8.
+This protocol is the point of the challenge. A model fitted to the severity distribution of nine part types is asked to measure three it has never seen measured. Predicting a constant learned from the training types — the natural shortcut — scores 0.78, against 0.23 for a model that estimates each image correctly to within a factor of about 1.8. The two groups also differ in scale: the training median is 10,871 parts per million, the test median 3,602.
 
 ## Dataset
 
@@ -73,7 +73,7 @@ score = sqrt( mean( ( log10(predicted) - log10(actual) )^2 ) )
 
 **Lower is better. A perfect submission scores 0.0.** The score has no upper bound: an arbitrarily wrong prediction costs arbitrarily much.
 
-Error is measured in log space because the quantity spans three orders of magnitude. Predicting 2,000 where the truth is 1,000 costs exactly as much as predicting 20,000 where the truth is 10,000 — in both cases the estimate is off by a factor of two, and both are equally wrong for the plant. A score of 0.30 means the typical prediction is off by a factor of 2; a score of 0.10 means a factor of 1.26.
+Error is measured in log space because the quantity spans four orders of magnitude. Predicting 2,000 where the truth is 1,000 costs exactly as much as predicting 20,000 where the truth is 10,000 — in both cases the estimate is off by a factor of two, and both are equally wrong for the plant. A score of 0.30 means the typical prediction is off by a factor of 2; a score of 0.10 means a factor of 1.26.
 
 The public leaderboard scores the public subset; the final ranking uses the private subset only.
 
