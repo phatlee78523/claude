@@ -12,6 +12,12 @@ annotated defect for the part types it is scored on.  What it does get for them
 is the unannotated flawless photographs, so the intended path is to model
 correct appearance for an unseen part and localise the deviation.
 
+Two further constraints make the protocol more than a category holdout.  The
+released ``test.csv`` omits ``part_type``, so a solution must first work out
+which family a test image belongs to from the flawless pool alone.  And grading
+takes the *worst* of the three per-type mean scores rather than the average, so
+handling two unseen families and failing the third counts as failing.
+
 The three held-out types are drawn deterministically from a fixed seed, so the
 split is reproducible and was not hand-picked.  Independent units — groups of
 images that photograph the same physical flaw — never straddle a split
@@ -47,8 +53,11 @@ RAW_ANSWER_NAMES = ("answers.csv", "answer.csv")
 ANSWER_CSV = "answers.csv"   # the grading entrypoint reads /private/answers.csv
 BOX_COLUMNS = ["x_min", "y_min", "x_max", "y_max"]
 SUBMISSION_COLUMNS = ["id"] + BOX_COLUMNS
-ANSWER_COLUMNS = SUBMISSION_COLUMNS + ["width", "height", "visibility", "unit_id"]
+ANSWER_COLUMNS = SUBMISSION_COLUMNS + [
+    "width", "height", "part_type", "visibility", "unit_id",
+]
 LEAK_COLUMNS = set(BOX_COLUMNS) | {"visibility", "unit_id"}
+TEST_LEAK_COLUMNS = {"part_type"}   # withheld on the test side only
 
 # Images of one physical flaw, grouped at source-mask IoU >= 0.75. Every group
 # lies inside a single part type, so leaving a type out keeps a group intact.
@@ -188,9 +197,9 @@ def prepare(raw: Path, public: Path, private: Path) -> None:
     normal = pd.read_csv(public / "train_normal.csv", dtype=str)
 
     train[columns].to_csv(public / "train_labels.csv", index=False)
-    test[["id", "part_type", "width", "height"]].to_csv(
-        public / "test.csv", index=False
-    )
+    # test.csv deliberately omits part_type: identifying which family a test
+    # image belongs to, from the flawless pool alone, is part of the task.
+    test[["id", "width", "height"]].to_csv(public / "test.csv", index=False)
     pd.DataFrame(
         {
             "id": test["id"],
@@ -215,6 +224,8 @@ def prepare(raw: Path, public: Path, private: Path) -> None:
         raise ValueError("a held-out part type leaked into the training labels")
     if set(test["part_type"]) != set(held):
         raise ValueError("the test split is not exactly the held-out part types")
+    if list(pd.read_csv(public / "test.csv", nrows=0).columns) != ["id", "width", "height"]:
+        raise ValueError("test.csv must expose only id, width and height")
     if list(sample.columns) != SUBMISSION_COLUMNS:
         raise ValueError("sample_submission.csv has the wrong column order")
     if set(sample["id"]) != test_ids:
@@ -232,6 +243,8 @@ def prepare(raw: Path, public: Path, private: Path) -> None:
             continue
         if present & LEAK_COLUMNS:
             raise ValueError(f"{path.name} exposes grading columns")
+    if TEST_LEAK_COLUMNS & set(pd.read_csv(public / "test.csv", nrows=0).columns):
+        raise ValueError("test.csv exposes the part type")
     for name in RAW_ANSWER_NAMES:
         if (public / name).exists():
             raise ValueError(f"{name} leaked into the public package")
@@ -245,7 +258,10 @@ def prepare(raw: Path, public: Path, private: Path) -> None:
         f"({(test['visibility'] == 'public').sum()} public / "
         f"{(test['visibility'] == 'private').sum()} private rows)\n"
         f"flawless {counts['train_normal']} images across all 12 types\n"
-        f"private  {len(test)} answer rows"
+        f"test.csv columns  {list(pd.read_csv(public / 'test.csv', nrows=0).columns)}"
+        f"  (part_type withheld)\n"
+        f"private  {len(test)} answer rows, scored as the worst of "
+        f"{test['part_type'].nunique()} per-type means"
     )
 
 

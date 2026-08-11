@@ -1,17 +1,23 @@
 #!/usr/bin/env python3
 """Grade an Industrial Defect Localization submission.
 
-Metric: mean intersection-over-union between the submitted box and the reference
-defect box, averaged over all scored images.
+Metric: the **worst** per-part-type mean intersection-over-union. Every scored
+image belongs to one of three part types held out of the labelled training data.
+Mean IoU is computed separately within each of those three types, and the
+submission's score is the smallest of the three.
 
     Score range      0.0 to 1.0, bounded at both ends
     Grade direction  MAXIMIZE - higher is better
-    Perfect score    1.0, reproducing every reference box exactly
-    Worst score      0.0, no overlap anywhere
+    Perfect score    1.0, every reference box reproduced on every part type
+    Worst score      0.0, no overlap anywhere on at least one part type
 
-This is a similarity, not an error: it has no unbounded tail and is never
-minimised. Any structural or format violation returns the worst score 0.0 for
-the whole submission; boxes are never clipped, repaired, or coerced.
+Scoring on the worst type rather than the average makes the challenge about
+robust transfer: a solution that handles two unseen part types and fails the
+third scores as if it had failed everywhere, which is the honest reading for an
+inspection line that must work on whatever part it is pointed at.
+
+Any structural or format violation returns the worst score 0.0 for the whole
+submission; boxes are never clipped, repaired, or coerced.
 """
 
 from __future__ import annotations
@@ -26,6 +32,7 @@ GRADE_DIRECTION = "maximize"
 FLOOR = SCORE_MIN      # returned for any submission that fails validation
 REQUIRED_COLUMNS = ["id", "x_min", "y_min", "x_max", "y_max"]
 COORD_COLUMNS = ["x_min", "y_min", "x_max", "y_max"]
+GROUP_COLUMN = "part_type"
 CANONICAL_INT = re.compile(r"^(0|[1-9][0-9]*)$")
 
 
@@ -79,7 +86,11 @@ def grade(submission: pd.DataFrame, answers: pd.DataFrame) -> float:
 
         parea = (px1 - px0 + 1) * (py1 - py0 + 1)
         tarea = (tx1 - tx0 + 1) * (ty1 - ty0 + 1)
-        union = parea + tarea - intersection
-        return float((intersection / union).mean())
+        overlap = intersection / (parea + tarea - intersection)
+
+        if GROUP_COLUMN not in truth.columns:
+            return float(overlap.mean())
+        per_type = overlap.groupby(list(truth[GROUP_COLUMN])).mean()
+        return float(per_type.min())
     except Exception:
         return FLOOR
