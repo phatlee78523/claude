@@ -1,74 +1,85 @@
 #!/usr/bin/env python3
-"""Grade a Surface Damage Extent Estimation submission.
+"""Grade an Industrial Defect Localization submission.
 
-Metric: root-mean-square error of the base-10 logarithm of the predicted damage
-extent, in parts per million of image area.
+Metric: mean intersection-over-union between the submitted box and the reference
+defect box, averaged over all scored images.
 
-    Score range      0.0 upwards, unbounded above
-    Grade direction  MINIMIZE - lower is better
-    Perfect score    0.0, every prediction exactly right
-    Reference        a constant-value baseline scores about 0.78
+    Score range      0.0 to 1.0, bounded at both ends
+    Grade direction  MAXIMIZE - higher is better
+    Perfect score    1.0, reproducing every reference box exactly
+    Worst score      0.0, no overlap anywhere
 
-The target spans three orders of magnitude, from a couple of hundred parts per
-million to a fifth of the image, so error is measured in log space: predicting
-2,000 where the truth is 1,000 costs exactly as much as predicting 20,000 where
-the truth is 10,000. A submission that violates a structural or format rule is
-rejected outright rather than scored; predictions are never clipped, rounded or
-otherwise repaired.
+This is a similarity, not an error: it has no unbounded tail and is never
+minimised. Any structural or format violation returns the worst score 0.0 for
+the whole submission; boxes are never clipped, repaired, or coerced.
 """
 
 from __future__ import annotations
 
-import math
 import re
 
 import pandas as pd
 
-SCORE_MIN = 0.0            # perfect score
-SCORE_MAX = math.inf       # unbounded: an arbitrarily bad guess scores arbitrarily high
-GRADE_DIRECTION = "minimize"
-REQUIRED_COLUMNS = ["id", "extent_ppm"]
-TARGET = "extent_ppm"
-MIN_EXTENT = 1
-MAX_EXTENT = 1_000_000
-POSITIVE_INT = re.compile(r"^[1-9][0-9]*$")
+SCORE_MIN = 0.0        # worst attainable score
+SCORE_MAX = 1.0        # perfect score
+GRADE_DIRECTION = "maximize"
+FLOOR = SCORE_MIN      # returned for any submission that fails validation
+REQUIRED_COLUMNS = ["id", "x_min", "y_min", "x_max", "y_max"]
+COORD_COLUMNS = ["x_min", "y_min", "x_max", "y_max"]
+CANONICAL_INT = re.compile(r"^(0|[1-9][0-9]*)$")
 
 
 def grade(submission: pd.DataFrame, answers: pd.DataFrame) -> float:
-    """Score a submission against the withheld answers. Lower is better."""
-    if list(submission.columns) != REQUIRED_COLUMNS:
-        raise ValueError(
-            f"submission columns must be exactly {REQUIRED_COLUMNS}, "
-            f"got {list(submission.columns)}"
-        )
-    if len(submission) != len(answers):
-        raise ValueError(
-            f"submission has {len(submission)} rows, expected {len(answers)}"
-        )
+    try:
+        if list(submission.columns) != REQUIRED_COLUMNS:
+            return FLOOR
+        if len(submission) != len(answers):
+            return FLOOR
 
-    ids = submission["id"].astype(str)
-    if ids.duplicated().any():
-        raise ValueError("submission contains a duplicated id")
-    truth_ids = answers["id"].astype(str)
-    if set(ids) != set(truth_ids):
-        raise ValueError("submission ids do not match the test ids exactly")
+        ids = submission["id"].astype(str)
+        if ids.duplicated().any():
+            return FLOOR
+        truth_ids = answers["id"].astype(str)
+        if set(ids) != set(truth_ids):
+            return FLOOR
 
-    values = submission[TARGET].astype(str)
-    if not values.map(lambda v: bool(POSITIVE_INT.match(v))).all():
-        raise ValueError(
-            f"every {TARGET} must be a canonical positive integer: digits only, "
-            "no sign, no decimal point, no leading zeros"
-        )
+        submitted_index = list(ids)
+        truth_index = list(truth_ids)
 
-    predicted = pd.Series([int(v) for v in values], index=list(ids))
-    if predicted.lt(MIN_EXTENT).any() or predicted.gt(MAX_EXTENT).any():
-        raise ValueError(f"every {TARGET} must lie in [{MIN_EXTENT}, {MAX_EXTENT}]")
+        coords = {}
+        for column in COORD_COLUMNS:
+            values = submission[column].astype(str)
+            if not values.map(lambda v: bool(CANONICAL_INT.match(v))).all():
+                return FLOOR
+            coords[column] = pd.Series(
+                [int(v) for v in values], index=submitted_index
+            ).reindex(truth_index)
 
-    truth_index = list(truth_ids)
-    predicted = predicted.reindex(truth_index)
-    actual = pd.Series(
-        [int(v) for v in answers[TARGET].astype(str)], index=truth_index
-    )
+        truth = answers.set_index(pd.Index(truth_index))
 
-    error = predicted.map(math.log10) - actual.map(math.log10)
-    return float((error.pow(2).mean()) ** 0.5)
+        px0, py0 = coords["x_min"], coords["y_min"]
+        px1, py1 = coords["x_max"], coords["y_max"]
+        if (px1 < px0).any() or (py1 < py0).any():
+            return FLOOR
+        if (px1 >= truth["width"].astype(int)).any():
+            return FLOOR
+        if (py1 >= truth["height"].astype(int)).any():
+            return FLOOR
+
+        tx0 = truth["x_min"].astype(int)
+        ty0 = truth["y_min"].astype(int)
+        tx1 = truth["x_max"].astype(int)
+        ty1 = truth["y_max"].astype(int)
+
+        iw = (pd.concat([px1, tx1], axis=1).min(axis=1)
+              - pd.concat([px0, tx0], axis=1).max(axis=1) + 1).clip(lower=0)
+        ih = (pd.concat([py1, ty1], axis=1).min(axis=1)
+              - pd.concat([py0, ty0], axis=1).max(axis=1) + 1).clip(lower=0)
+        intersection = iw * ih
+
+        parea = (px1 - px0 + 1) * (py1 - py0 + 1)
+        tarea = (tx1 - tx0 + 1) * (ty1 - ty0 + 1)
+        union = parea + tarea - intersection
+        return float((intersection / union).mean())
+    except Exception:
+        return FLOOR

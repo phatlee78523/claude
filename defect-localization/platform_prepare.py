@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
-"""Data preparation pipeline for the Surface Damage Extent Estimation challenge.
+"""Data preparation pipeline for the Industrial Defect Localization challenge.
 
 The hosting platform mounts the source dataset at ``raw`` and expects this module
 to write the solver-visible package to ``public`` and the grading material to
 ``private``.
 
-The target is ``extent_ppm``: the damaged area of a part expressed in parts per
-million of the image area, derived from the source annotation and released as an
-integer.  The evaluation protocol is **leave-part-types-out**: three of the twelve
-part types are withheld entirely from the labelled training data, and every test
-image comes from one of those three.  A solution therefore never sees a labelled
-example of damage on the part types it is scored on.  What it does get for them
-is the unlabelled flawless photographs, so the intended path is to model correct
-appearance for an unseen part and measure the departure from it.
+The evaluation protocol is **leave-part-types-out**: three of the twelve part
+types are withheld entirely from the annotated training data, and every test
+image comes from one of those three.  A solution therefore never sees a single
+annotated defect for the part types it is scored on.  What it does get for them
+is the unannotated flawless photographs, so the intended path is to model
+correct appearance for an unseen part and localise the deviation.
 
 The three held-out types are drawn deterministically from a fixed seed, so the
 split is reproducible and was not hand-picked.  Independent units — groups of
@@ -48,10 +46,9 @@ PUBLIC_FRACTION = 0.25
 RAW_ANSWER_NAMES = ("answers.csv", "answer.csv")
 ANSWER_CSV = "answers.csv"   # the grading entrypoint reads /private/answers.csv
 BOX_COLUMNS = ["x_min", "y_min", "x_max", "y_max"]
-TARGET = "extent_ppm"
-SUBMISSION_COLUMNS = ["id", TARGET]
-ANSWER_COLUMNS = [TARGET, "visibility", "unit_id"]
-LEAK_COLUMNS = {TARGET, "visibility", "unit_id"}
+SUBMISSION_COLUMNS = ["id"] + BOX_COLUMNS
+ANSWER_COLUMNS = SUBMISSION_COLUMNS + ["width", "height", "visibility", "unit_id"]
+LEAK_COLUMNS = set(BOX_COLUMNS) | {"visibility", "unit_id"}
 
 # Images of one physical flaw, grouped at source-mask IoU >= 0.75. Every group
 # lies inside a single part type, so leaving a type out keeps a group intact.
@@ -131,7 +128,7 @@ def prepare(raw: Path, public: Path, private: Path) -> None:
     answers = pd.read_csv(_find_answers(raw), dtype=str)
 
     held_boxes = listed[["id", "part_type"]].merge(
-        answers[["id"] + BOX_COLUMNS + ["width", "height"]], on="id", how="inner"
+        answers[SUBMISSION_COLUMNS + ["width", "height"]], on="id", how="inner"
     )
     if len(held_boxes) != len(listed):
         raise ValueError("the answer file does not cover every row of test.csv")
@@ -142,16 +139,6 @@ def prepare(raw: Path, public: Path, private: Path) -> None:
     if pool["id"].duplicated().any():
         raise ValueError("an identifier appears twice in the annotated pool")
     pool["unit_id"] = pool["id"].map(_unit_ids(list(pool["id"])))
-
-    # The target: damaged area as parts per million of the image, an integer >= 1.
-    numbers = pool[BOX_COLUMNS + ["width", "height"]].astype(int)
-    damaged = ((numbers["x_max"] - numbers["x_min"] + 1)
-               * (numbers["y_max"] - numbers["y_min"] + 1))
-    pool[TARGET] = np.maximum(
-        1, np.round(1e6 * damaged / (numbers["width"] * numbers["height"]))
-    ).astype(int)
-    if (pool[TARGET] < 1).any() or (pool[TARGET] > 1_000_000).any():
-        raise ValueError(f"{TARGET} outside 1..1000000")
 
     # --- leave-part-types-out --------------------------------------------------
     rng = np.random.default_rng(SPLIT_SEED)
@@ -200,16 +187,20 @@ def prepare(raw: Path, public: Path, private: Path) -> None:
     )
     normal = pd.read_csv(public / "train_normal.csv", dtype=str)
 
-    public_columns = ["id", "part_type", "width", "height", TARGET]
-    train[public_columns].to_csv(public / "train_labels.csv", index=False)
+    train[columns].to_csv(public / "train_labels.csv", index=False)
     test[["id", "part_type", "width", "height"]].to_csv(
         public / "test.csv", index=False
     )
-    placeholder = int(round(10 ** np.log10(train[TARGET]).mean()))
-    pd.DataFrame({"id": test["id"], TARGET: placeholder}).to_csv(
-        public / "sample_submission.csv", index=False
-    )
-    test[["id"] + ANSWER_COLUMNS].to_csv(private / ANSWER_CSV, index=False)
+    pd.DataFrame(
+        {
+            "id": test["id"],
+            "x_min": "0",
+            "y_min": "0",
+            "x_max": (test["width"].astype(int) - 1).astype(str),
+            "y_max": (test["height"].astype(int) - 1).astype(str),
+        }
+    ).to_csv(public / "sample_submission.csv", index=False)
+    test[ANSWER_COLUMNS].to_csv(private / ANSWER_CSV, index=False)
 
     # --- invariants ------------------------------------------------------------
     sample = pd.read_csv(public / "sample_submission.csv", dtype=str)
@@ -241,8 +232,6 @@ def prepare(raw: Path, public: Path, private: Path) -> None:
             continue
         if present & LEAK_COLUMNS:
             raise ValueError(f"{path.name} exposes grading columns")
-    if set(BOX_COLUMNS) & set(pd.read_csv(public / "train_labels.csv", nrows=0).columns):
-        raise ValueError("train_labels.csv still carries box coordinates")
     for name in RAW_ANSWER_NAMES:
         if (public / name).exists():
             raise ValueError(f"{name} leaked into the public package")
@@ -256,9 +245,6 @@ def prepare(raw: Path, public: Path, private: Path) -> None:
         f"({(test['visibility'] == 'public').sum()} public / "
         f"{(test['visibility'] == 'private').sum()} private rows)\n"
         f"flawless {counts['train_normal']} images across all 12 types\n"
-        f"target   extent_ppm, train {train[TARGET].min()}..{train[TARGET].max()} "
-        f"(median {int(train[TARGET].median())}), "
-        f"sample_submission placeholder {placeholder}\n"
         f"private  {len(test)} answer rows"
     )
 
