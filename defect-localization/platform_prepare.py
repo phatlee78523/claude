@@ -17,6 +17,9 @@ Layout expected under ``raw`` (folder names, wherever they sit in the tree)::
     images/test/*.jpg              test.csv
                                    sample_submission.csv
                                    answer.csv        <- grading only, never public
+
+The grading entrypoint reads ``/private/answers.csv``, so the answer table is
+written under that plural name regardless of how it is named in ``raw``.
 """
 
 from __future__ import annotations
@@ -34,7 +37,8 @@ PUBLIC_CSVS = (
     "test.csv",
     "sample_submission.csv",
 )
-ANSWER_CSV = "answer.csv"
+RAW_ANSWER_NAMES = ("answers.csv", "answer.csv")
+ANSWER_CSV = "answers.csv"   # the grading entrypoint reads /private/answers.csv
 ANSWER_COLUMNS = [
     "id", "x_min", "y_min", "x_max", "y_max",
     "width", "height", "visibility", "unit_id",
@@ -73,6 +77,18 @@ def _find_dir(root: Path, name: str) -> Path:
     return matches[0]
 
 
+def _find_answers(root: Path) -> Path:
+    """The grading answer table, under either the singular or plural name."""
+    for name in RAW_ANSWER_NAMES:
+        try:
+            return _find_file(root, name)
+        except FileNotFoundError:
+            continue
+    raise FileNotFoundError(
+        f"none of {RAW_ANSWER_NAMES} found under {root}"
+    )
+
+
 def _link_tree(source: Path, destination: Path) -> int:
     """Copy an image folder, hard-linking where the filesystem allows it."""
     destination.mkdir(parents=True, exist_ok=True)
@@ -109,10 +125,10 @@ def prepare(raw: Path, public: Path, private: Path) -> None:
     sample = pd.read_csv(public / "sample_submission.csv", dtype=str)
 
     # --- grading material ------------------------------------------------------
-    answers = pd.read_csv(_find_file(raw, ANSWER_CSV), dtype=str)
+    answers = pd.read_csv(_find_answers(raw), dtype=str)
     missing = [c for c in ANSWER_COLUMNS if c not in answers.columns]
     if missing:
-        raise ValueError(f"{ANSWER_CSV} is missing columns: {missing}")
+        raise ValueError(f"the answer file is missing columns: {missing}")
     answers = answers[ANSWER_COLUMNS]
     answers.to_csv(private / ANSWER_CSV, index=False)
 
@@ -121,9 +137,9 @@ def prepare(raw: Path, public: Path, private: Path) -> None:
     if len(set(test_ids)) != len(test_ids):
         raise ValueError("duplicate id in test.csv")
     if set(answers["id"]) != set(test_ids):
-        raise ValueError("answer.csv does not cover exactly the test ids")
+        raise ValueError("the answer file does not cover exactly the test ids")
     if len(answers) != len(test_ids):
-        raise ValueError("answer.csv row count does not match test.csv")
+        raise ValueError("answer row count does not match test.csv")
     if list(sample.columns) != SUBMISSION_COLUMNS:
         raise ValueError("sample_submission.csv has the wrong column order")
     if set(sample["id"]) != set(test_ids):
@@ -150,8 +166,9 @@ def prepare(raw: Path, public: Path, private: Path) -> None:
             continue
         if columns & LEAK_COLUMNS and path.name != "sample_submission.csv":
             raise ValueError(f"{path.name} exposes grading columns")
-    if (public / ANSWER_CSV).exists():
-        raise ValueError("answer.csv leaked into the public package")
+    for name in RAW_ANSWER_NAMES:
+        if (public / name).exists():
+            raise ValueError(f"{name} leaked into the public package")
 
     print(
         f"public images  train_defective={counts['train_defective']} "
