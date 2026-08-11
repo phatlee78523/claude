@@ -17,6 +17,7 @@ redistribution permitted with attribution. Cite Zou et al., arXiv:2207.14315.
 - [`dataset-description.md`](dataset-description.md) — dataset record with
   provenance, licence and preparation details.
 - [`release-report.md`](release-report.md) — gate-by-gate results.
+- [`rubrics.md`](rubrics.md) — nine initial grading rubrics for the hosting platform.
 - `prepare.py` — deterministic packaging from an extracted VisA release.
 - `platform_prepare.py` — hosting-platform pipeline, `prepare(raw, public, private)`.
 - `grade.py` — mean-IoU grader with strict submission validation.
