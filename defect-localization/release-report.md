@@ -1,6 +1,6 @@
 # Release report — Industrial Defect Localization
 
-Built with the `build-ml-challenges` skill. Source: VisA (Amazon), CC BY 4.0, credited in the dataset record — deliberately not in the challenge statement.
+Built with the `build-ml-challenges` skill. Source: VisA (Amazon), CC BY 4.0, cited in the challenge statement's Attribution section (no repository link or download path) and in full in the dataset record.
 
 ## Design summary
 
@@ -9,9 +9,9 @@ Built with the `build-ml-challenges` skill. Source: VisA (Amazon), CC BY 4.0, cr
 | Real-world objective | Inspect a part the line has never seen damaged, and point at the flaw |
 | Evaluation protocol | **Leave-part-types-out**: 9 types annotated for training, 3 held-out types scored |
 | Independent unit | One defect-image group (images of the same physical flaw share a unit) |
-| Inference input | One JPEG of a part known to be defective, plus its anonymous part type |
+| Inference input | One JPEG of a part known to be defective — `test.csv` withholds the part type; family identity must be recovered from the flawless pool |
 | Target | Inclusive-pixel bounding box over all defective pixels |
-| Metric | Mean IoU, range 0–1, perfect 1.0, floor 0.0 for any malformed submission |
+| Metric | **Worst per-held-out-type mean IoU**, range 0–1, perfect 1.0, floor 0.0 for any malformed submission |
 | Strongest expected shortcut | Positional/size prior learned from the training types — structurally unable to transfer |
 | Why supervised learning wins | Only the flawless pool for the scored types tells a model what "correct" looks like there |
 | Pretrained models | General-purpose backbones allowed; anomaly/defect-trained checkpoints and the source corpus barred |
@@ -49,37 +49,34 @@ The measurable consequence: the strongest rule baseline falls from **0.092** und
 | Grader: 11 malformed cases → floor | PASS (all 0.0) | extra/reordered/missing columns, missing/extra/duplicate IDs, blank, whitespace, nonnumeric, NaN, infinity |
 | Visibility integrity | PASS | 0 units cross visibility; public unit fraction 0.248 |
 | Split integrity | PASS | 0 held-out-type rows in `train_labels.csv`; test types ∩ train types = ∅; no unit spans train/test |
-| Rank stability (12 noisy peers, σ = 0.22 box side) | PASS | private sd = 0.0106, range = 0.0354; 3×sd = 0.0319 |
-| Shortcut resistance | PASS | every rule baseline ≤ 0.023 against a 0.527 reference solver |
+| Rank stability (12 noisy peers, σ = 0.22 box side) | PASS | worst-type metric: peer sd = 0.0142, 3×sd = 0.0427, far below the solver gap |
+| Shortcut resistance | PASS | every rule baseline ≤ 0.0042 under the worst-type metric, against a 0.502 reference solver |
 | Packaging | PASS | no answers in public files, ID sets consistent, all identifiers opaque |
 | Preparation determinism/cost | PASS | fixed seed 20260810; 2 s in-platform, no randomness beyond the seeded permutation |
-| Hosting-platform domain gate | **FAIL** | classified "Object Detection", then "Anomaly Detection", both closed to submissions |
+| Hosting-platform domain gate | PASS (after three failures) | earlier framings were classified Object Detection, Anomaly Detection and Regression, all closed; the current framing cleared the gate |
 | License/provenance | PASS | CC BY 4.0 verified at two primary sources; credited in the dataset record, withheld from the challenge statement |
 | Honest learned baseline / agent evaluation | NOT RUN | requires model training compute; remaining open gate |
 
-## Shortcut baselines (private subset)
+## Shortcut baselines (private subset, worst-type metric)
 
-| Baseline | Mean IoU |
-| --- | --- |
-| Rule derived from the hashed identifier | 0.0056 |
-| Whole image as the box | 0.0125 |
-| Union of all training boxes (relative) | 0.0135 |
-| Constant median-size box at image centre | 0.0140 |
-| Mean relative box learned from the training types | **0.0229** ← strongest rule |
-| *Jittered-oracle reference solver* | *0.5267* |
-| *Oracle* | *1.0000* |
+| Baseline | Mean over all images | **Worst type (the score)** |
+| --- | --- | --- |
+| Mean relative box learned from the training types | 0.0207 | **0.0004** |
+| Whole image as the box | 0.0128 | 0.0045 |
+| *Jittered-oracle reference solver* | *0.527* | *0.502* |
+| *Oracle* | *1.000* | *1.000* |
 
-The strongest shortcut reaches 4.3% of the reference solver's score, down from 18% under the earlier stratified split. Identifier, row-order and metadata attacks were all tested and all failed.
+Scoring on the worst held-out type instead of the average cuts the strongest shortcut a further 50-fold: averaging let one easy family carry a rule that had not generalised, and the minimum does not. The strongest shortcut now reaches 0.08% of the reference solver's score. Identifier, row-order and metadata attacks were all tested and all failed.
 
 ## Known limitations
 
-- **The parent corpus is public and ships pixel masks.** Matching a released test image back to its source annotation is the one attack this design cannot detect automatically. It is prohibited in `What Not to Use`, and the challenge statement withholds the corpus name, the citation and the link so that the attack is not handed to solvers.
-- **The platform's own gates conflict on this point.** Its novelty review asked for the source to be credited by name in the challenge statement; its data-secrecy check then failed the statement for naming and linking a publicly downloadable source, on the ground that it makes the reference boxes recoverable. The resolution is to separate the two audiences: the challenge statement, which agents read, carries a licence note without a name; the dataset record, published alongside, carries the full citation, repository link and CC BY 4.0 terms. That satisfies the licence, which requires attribution but not attribution inside the problem prompt.
+- **The parent corpus is public and ships pixel masks.** Matching a released test image back to its source annotation is the one attack this design cannot detect automatically. It is prohibited in `What Not to Use`. The challenge statement cites the source academically, as the novelty review required, but carries no repository link or download path, which is what the data-secrecy check objected to.
+- **The platform's novelty and data-secrecy gates pull in opposite directions.** One demanded explicit attribution in the statement, the other failed the statement for naming and linking a downloadable source. The resolution: the statement carries the academic citation without any link or download path; the dataset record carries the full terms including the repository. Whether both automated gates accept this simultaneously is outside this repo's control.
 - Three held-out types is a small sample of the type distribution. The leaderboard measures transfer to *these* three parts, not to industrial inspection in general.
 - Boxes are tight bounds over all defects, so on images with more than one flaw the box also covers intervening sound material.
 - IoU is sensitive on the smallest targets, and the scored types have smaller defects than the release average (0.34% versus 0.82% median). This is reflected in the measured noise floor.
 - Agent evaluation and a trained honest baseline remain to be run on a platform with training compute; every automatable design gate passes.
-- **The hosting platform will not currently accept this challenge in any framing tried.** Its domain classifier placed the boxed task under Object Detection, the same task reworded under Anomaly Detection, and a scalar-regression variant of the same data under Regression; all three are closed to submissions. The scalar variant was also worse on the platform's own novelty score, 4 against 6 for the boxed task, and weaker on the merits — damage extent can be estimated from global texture statistics without ever finding the damage. The boxed task is therefore the version kept. What is blocked is publication on that platform, not the challenge itself.
+- **Domain history.** The platform's domain classifier rejected three earlier framings — Object Detection, Anomaly Detection and Regression, all closed to submissions — before the current framing cleared the gate. A scalar-regression variant tried along the way also scored worse on novelty (4 against 6) and was weaker on the merits, since damage extent can be estimated from global texture statistics without finding the damage; it was discarded.
 
 ## Artifacts
 

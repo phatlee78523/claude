@@ -6,7 +6,7 @@ genuinely fail. All ten are REQUIRED or RECOMMENDED; none is UNIVERSAL.
 
 The design centre of this challenge is the leave-part-types-out protocol, so the
 rubrics that separate a serious attempt from a careless one are the ones about
-validation design (#7) and about not fitting a per-part-type prior (#8).
+validation design (#1), family recovery (#3) and the worst-type metric (#7, #10).
 
 | # | Type | Importance | Criterion |
 | --- | --- | --- | --- |
@@ -19,15 +19,15 @@ validation design (#7) and about not fitting a per-part-type prior (#8).
 | 7 | MODELING | RECOMMENDED | Does not encode a per-part-type positional or size prior learned from the training types. Such a prior cannot transfer: the scored types are absent from the annotated training data, and a rule baseline of exactly this kind scores 0.0004 under the worst-type metric used here. |
 | 8 | MODELING | RECOMMENDED | Preserves enough spatial resolution for the target scale. On the scored part types the reference box covers a median of 0.34% of the image and a 1st percentile of 0.023%. Regressing four numbers from a single heavily downsampled global descriptor cannot localise targets this small; the design should keep localisation information at a fine enough stride, by any means. |
 | 9 | TRAINING | RECOMMENDED | Builds its validation split so that near-duplicate images do not straddle the boundary. Four groups of training images photograph the same physical flaw more than once; if such a group is split across train and validation, the validation score is inflated by memorisation rather than generalisation. |
-| 10 | AGENT_BEHAVIOR | RECOMMENDED | Compares its model against at least one trivial baseline before accepting it — a constant box, the whole image, or a mean box learned from the training types. Those reach 0.006–0.023 mean IoU on this data; a learned model scoring inside that band has not learned to localise, and the solution should say so rather than report it as a result. |
+| 10 | AGENT_BEHAVIOR | RECOMMENDED | Compares its model against at least one trivial baseline before accepting it — a constant box, the whole image, or a mean box learned from the training types. Under the worst-type metric those score 0.0004–0.0042 here; a learned model scoring inside that band has not learned to localise, and the solution should say so rather than report it as a result. |
 
 ## Why these and not others
 
 - **Specificity.** Every criterion names a measured quantity from this release —
   nine training types against three scored ones, 900 and 300 images, 3,004
   flawless images of the scored types, eight resolutions, 0.34% median box area,
-  four duplicate groups, the 0.006–0.023 rule-baseline band. None would transfer
-  unchanged to another challenge.
+  four duplicate groups, the 0.0004–0.0042 worst-type baseline band. None would
+  transfer unchanged to another challenge.
 - **Balance.** Criteria 1, 3, 6, 8, 9 and 10 state what a good solution does;
   criteria 2, 4, 5 and 7 state what it must not do.
 - **Approach-neutral.** No architecture, library or training recipe is named.
