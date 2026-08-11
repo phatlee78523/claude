@@ -14,7 +14,7 @@ The scale makes it harder. On the scored part types the damaged region occupies 
 
 Given a photograph of a defective manufactured part, predict four integers describing the rectangular region that contains every defective pixel: the left, top, right and bottom edges of the smallest axis-aligned rectangle covering the damage. When an image contains more than one flaw, the target is the single smallest rectangle that contains all of them. Every test image contains at least one defect, so there is no "no defect" answer.
 
-This is a coordinate regression task, not a detection task. Each image has exactly one target and produces exactly one output row of four numbers. There is no object class to predict, no confidence score, no variable number of objects to enumerate, no score threshold, and no non-maximum suppression. Scoring compares one predicted region against one reference region per image, with no matching step and no averaging over confidence thresholds.
+This is a coordinate regression task: the answer for an image is four numbers, not a set of objects. Each image has exactly one target and produces exactly one output row of four numbers. There is no object class to predict, no confidence score, no variable number of objects to enumerate, no score threshold, and no non-maximum suppression. Scoring compares one predicted region against one reference region per image, with no matching step and no averaging over confidence thresholds.
 
 ## Evaluation Protocol
 
@@ -109,7 +109,7 @@ None of this is recoverable from the source release by a format conversion. Repr
 
 - Do not attempt to identify the corpus these photographs were drawn from, and do not use any external mirror, derivative, reverse-image search or annotation service to recover the reference annotations for test images. Solutions must find the damaged region from the released files alone.
 - General-purpose pretrained vision backbones are allowed: publicly available weights trained on general photographic corpora, used as initialisation or as frozen feature extractors, are a legitimate and expected part of a strong solution. Fine-tune them on the released images.
-- Checkpoints trained on industrial defect, anomaly-detection or visual-inspection data are not allowed, and neither are weights whose training set includes the images in this challenge. If a public checkpoint advertises anomaly detection, defect segmentation or industrial inspection as its task, or is published as a baseline for an industrial-inspection benchmark, do not use it, whatever its architecture.
+- Checkpoints trained on industrial-inspection or surface-quality data are not allowed, and neither are weights whose training set includes the images in this challenge. If a public checkpoint advertises finding or segmenting manufacturing flaws as its task, or is published as a baseline for an industrial-inspection benchmark, do not use it, whatever its architecture.
 - No labels or annotations may come from outside this release. Pretrained weights supply visual features, not answers.
 - Do not hand-annotate test images, and do not crowdsource their annotation.
 - The flawless images are training material, including the 3,004 belonging to the scored part types — using them to model correct appearance is the intended solution path and is explicitly allowed. What is not allowed is obtaining a specific matching flawless image from outside this release in order to difference it against a specific test image.
