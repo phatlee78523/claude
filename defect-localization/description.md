@@ -6,7 +6,7 @@ On a manufacturing inspection line, a camera photographs every part that passes 
 
 The hard version of that problem is the one a factory faces whenever it starts producing something new. A new part goes into production; thousands of good units come off the line within days; but defective units are rare, and annotating where the damage is takes an expert with a mouse. Waiting to collect and label enough defects for the new part before inspection can begin is exactly the delay the factory cannot afford.
 
-This challenge reproduces that situation. Annotated defects are released for **nine** kinds of part. Scoring happens entirely on **three other kinds of part**, for which not a single annotated defect is provided. What is provided for those three, in quantity, is flawless photographs: 3,004 images of undamaged units. A solution therefore cannot learn where damage tends to sit on the parts it will be scored on. It has to learn, from nine other part types, what "damage" looks like as a departure from correct appearance, and then apply that to a shape, material and failure mode it has never seen annotated.
+This challenge reproduces that situation. Defect boxes are released for **nine** kinds of part. Scoring happens entirely on **three other kinds of part**: their defective images are released, but the boxes marking the damage are withheld as the grading answers, so no labelled defect for those parts is available to learn from. What is provided for those three, in quantity, is flawless photographs: 3,004 images of undamaged units. A solution therefore cannot learn where damage tends to sit on the parts it will be scored on. It has to learn, from nine other part types, what "damage" looks like as a departure from correct appearance, and then apply that to a shape, material and failure mode it has never seen annotated.
 
 The scale makes it harder. On the scored part types the flaw occupies a median of 0.34% of the image and can be as small as 0.02%, while the surrounding part looks correct and nearly identical from photo to photo. Because the imaging rig is fixed, global appearance carries almost no information about where the flaw is.
 
@@ -21,15 +21,15 @@ This is a coordinate regression task, not a detection task. Each image has exact
 The split is **leave-part-types-out**, not a random partition:
 
 - Twelve part types exist in the release, coded `T01`–`T12`, 100 annotated defective images each.
-- Three of the twelve were drawn by a fixed random seed and withheld. Every test image belongs to one of those three; no annotated defect from them appears anywhere in the training files.
-- The nine remaining types supply all 900 annotated training images.
+- Three of the twelve were drawn by a fixed random seed and held out. Every test image belongs to one of those three, and no box for any of their defects appears in any released file.
+- The nine remaining types supply all 900 boxed training images.
 - Flawless, unannotated photographs are released for **all twelve types**, including the three scored ones.
 
 This protocol is the point of the challenge. A model fitted to the positions, shapes and textures of defects on the nine training types is being asked to generalise to parts it has never seen damaged. Approaches that implicitly memorise a per-part-type prior score close to zero here: the strongest such rule baseline reaches 0.023 mean IoU, against 0.527 for a reference solver that localises correctly with noise.
 
 ## Dataset
 
-- Annotated defective images: 1,200 in total across 12 part types, exactly 100 per type, split 900 training / 300 test by part type.
+- Defective images: 1,200 in total across 12 part types, exactly 100 per type, split 900 training / 300 test by part type. The 900 training images are released **with** their reference boxes in `train_labels.csv`. The 300 test images are released as **images only** — their boxes are the withheld answers and appear in no released file. Annotated training material therefore covers nine part types; the three scored types contribute test images and flawless references, and nothing else.
 - Independent units: 1,195. Four groups of images photograph the same physical flaw more than once; every image of a group stays on the same side of every split. The training pool holds 897 units, the test pool 298.
 - Approximately 25% of the test units form the public leaderboard and the rest the private leaderboard: 74 public and 226 private rows. Membership is assigned per unit and never revealed.
 - Auxiliary flawless images: 9,621 across all twelve types, of which 3,004 belong to the three scored types. These carry no boxes and no defects, and no test image comes from this pool.

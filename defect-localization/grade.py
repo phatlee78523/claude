@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 """Grade an Industrial Defect Localization submission.
 
-Metric: mean intersection-over-union between the submitted box and the
-reference defect box, averaged over all scored images, in [0, 1].
-Any structural or format violation returns the floor score 0.0 for the whole
-submission; boxes are never clipped, repaired, or coerced.
+Metric: mean intersection-over-union between the submitted box and the reference
+defect box, averaged over all scored images.
+
+    Score range      0.0 to 1.0, bounded at both ends
+    Grade direction  MAXIMIZE - higher is better
+    Perfect score    1.0, reproducing every reference box exactly
+    Worst score      0.0, no overlap anywhere
+
+This is a similarity, not an error: it has no unbounded tail and is never
+minimised. Any structural or format violation returns the worst score 0.0 for
+the whole submission; boxes are never clipped, repaired, or coerced.
 """
 
 from __future__ import annotations
@@ -13,7 +20,10 @@ import re
 
 import pandas as pd
 
-FLOOR = 0.0
+SCORE_MIN = 0.0        # worst attainable score
+SCORE_MAX = 1.0        # perfect score
+GRADE_DIRECTION = "maximize"
+FLOOR = SCORE_MIN      # returned for any submission that fails validation
 REQUIRED_COLUMNS = ["id", "x_min", "y_min", "x_max", "y_max"]
 COORD_COLUMNS = ["x_min", "y_min", "x_max", "y_max"]
 CANONICAL_INT = re.compile(r"^(0|[1-9][0-9]*)$")
