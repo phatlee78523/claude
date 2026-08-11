@@ -18,6 +18,7 @@ redistribution permitted with attribution. Cite Zou et al., arXiv:2207.14315.
   provenance, licence and preparation details.
 - [`release-report.md`](release-report.md) — gate-by-gate results.
 - `prepare.py` — deterministic packaging from an extracted VisA release.
+- `platform_prepare.py` — hosting-platform pipeline, `prepare(raw, public, private)`.
 - `grade.py` — mean-IoU grader with strict submission validation.
 - `audit/` — grader, stability, shortcut-baseline and packaging reports.
 
@@ -35,7 +36,15 @@ cd public && zip -0 -r ../images.zip train_defective train_normal test
 
 The released dataset nests the three image folders under `images/`, which is how
 the hosting platform extracts an archive named `images.zip`; the four CSV files
-sit beside it at the top level.
+and `answer.csv` sit beside it at the top level.
+
+`platform_prepare.py` consumes that layout on the hosting side and flattens it:
+the three image folders and the four public CSV files go to `public/`, while
+`answer.csv` goes to `private/` and is never copied into the public package.
+
+```bash
+python platform_prepare.py --raw raw --public public --private private
+```
 
 Requires `numpy`, `pandas`, `pillow`. Deterministic: fixed hash salt and split
 seed 20260810, 92 s runtime, 1.8 GB peak RSS.

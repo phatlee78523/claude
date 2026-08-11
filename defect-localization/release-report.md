@@ -13,7 +13,8 @@ Built with the `build-ml-challenges` skill on 2026-08-10. Source: VisA (Amazon),
 | Metric | Mean IoU, range 0–1, perfect 1.0, floor 0.0 for any malformed submission |
 | Strongest expected shortcut | Per-part-type positional prior; image retrieval against the training set |
 | Why supervised learning wins | Fixed rig removes global cues; only local deviation from the flawless appearance localises the flaw |
-| Compute lane | GPU-relevant (image detection/segmentation trained from scratch), CPU-feasible at reduced resolution |
+| Pretrained models | General-purpose backbones allowed; anomaly/defect-trained checkpoints and the source corpus barred |
+| Compute lane | GPU-relevant: fine-tuning a general-purpose detection/segmentation backbone at native resolution |
 
 ## Data
 
@@ -41,6 +42,7 @@ Built with the `build-ml-challenges` skill on 2026-08-10. Source: VisA (Amazon),
 | Preparation determinism/cost | PASS | fixed salt + seed 20260810; 92 s runtime, 1.8 GB peak RSS |
 | License/provenance | PASS | CC BY 4.0 verified at two primary sources; attribution in dataset record; challenge statement source-secret |
 | Honest learned baseline / agent evaluation | NOT RUN | requires model training compute; remaining open gate |
+| Preparation pipeline (platform form) | PASS | `platform_prepare.py`: 2 s, hard-linked, invariants re-checked; oracle 1.0 and whole-image baseline 0.037 on its output |
 
 ## Shortcut baselines (private subset)
 
@@ -64,6 +66,7 @@ The first `grade.py` returned 0.0 for every submission including the oracle. Cau
 ## Known limitations
 
 - The parent corpus is public and distributes pixel masks. Opaque identifiers and the withheld part-name mapping raise the cost of recovering answers, but a determined image-matching attack against the source remains possible; this is disclosed in the dataset record and restricted in `What Not to Use`.
+- Blind evaluation depends on the platform contract that the source dataset mounted at `raw/` is author-private and never handed to solvers. `answer.csv` lives there and is routed to `private/` only; `platform_prepare.py` fails loudly if it ever reaches the public package.
 - Boxes are tight bounds over all defects, so on the 23.7% of images with more than one flaw the box also covers intervening sound material.
 - IoU is sensitive on the smallest targets, where a few pixels of error move the score materially. This is reflected in the measured noise floor and is why the required solver gap is 3×sd.
 - Agent evaluation and a trained honest baseline remain to be run on a platform with training compute; every automatable gate passes.

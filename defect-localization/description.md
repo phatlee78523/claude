@@ -24,14 +24,11 @@ Given a photograph of a defective manufactured part, predict the axis-aligned bo
 
 ## Files
 
-The three image folders live under a single `images/` directory; the CSV files sit
-beside it at the top level.
-
-- `images/train_defective/` — 958 JPEG images of defective parts, named `<id>.jpg`.
+- `train_defective/` — 958 JPEG images of defective parts, named `<id>.jpg`.
 - `train_labels.csv` — 958 rows, columns `id`, `part_type`, `width`, `height`, `x_min`, `y_min`, `x_max`, `y_max`.
-- `images/train_normal/` — 9,621 JPEG images of flawless parts, named `<id>.jpg`.
+- `train_normal/` — 9,621 JPEG images of flawless parts, named `<id>.jpg`.
 - `train_normal.csv` — 9,621 rows, columns `id`, `part_type`.
-- `images/test/` — 242 JPEG images of defective parts, named `<id>.jpg`.
+- `test/` — 242 JPEG images of defective parts, named `<id>.jpg`.
 - `test.csv` — 242 rows, columns `id`, `part_type`, `width`, `height`.
 - `sample_submission.csv` — 242 rows in the required submission format, filled with a whole-image box as a placeholder.
 
@@ -71,7 +68,9 @@ id,x_min,y_min,x_max,y_max
 ## What Not to Use
 
 - The images derive from a corpus that is publicly available under a permissive licence and that ships pixel-level defect annotations. Do not attempt to identify the originating corpus, retrieve the source images, or use any external annotation, mirror, or search service to recover the reference boxes for test images. Solutions must localise defects from the released files alone.
-- Do not use pretrained models, published checkpoints, or externally trained feature extractors, including detection and segmentation backbones. Train only on the images released with this challenge. Standard open-source libraries, augmentation, and architectures initialised from random weights are allowed.
+- General-purpose pretrained backbones are allowed: publicly available image classification, detection and segmentation weights trained on general photographic corpora, used as initialisation or as frozen feature extractors, are a legitimate and expected part of a strong solution. Fine-tune them on the released images.
+- Checkpoints trained on industrial defect, anomaly-detection or visual-inspection data are not allowed, and neither are weights whose training set includes the images in this challenge or the corpus they derive from. If a public checkpoint advertises anomaly detection, defect segmentation or industrial inspection as its task, do not use it.
+- No labels or annotations may come from outside this release. Pretrained weights supply visual features, not answers.
 - Do not hand-annotate test images, and do not crowdsource their annotation.
 - The auxiliary flawless images are training material. Do not attempt to pair a specific test image with a specific flawless image obtained outside this release in order to read off the difference; using the flawless pool as a general model of correct appearance is the intended use and is allowed.
 - Do not probe the public leaderboard to recover private answers; submission-count limits apply.
