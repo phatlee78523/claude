@@ -4,9 +4,11 @@
 
 On a manufacturing inspection line, a camera photographs every part that passes under it in a fixed rig: same lighting, same viewpoint, same placement. An automatic quality system that only answers "this part is faulty" leaves the hard work to a human, who must then find the flaw before deciding whether to rework the part or discard it. What the line actually needs is a system that points at the flaw.
 
-This challenge asks for exactly that. Each image shows one manufactured part that is known to be defective, and the task is to regress the four coordinates of the rectangle enclosing the damaged region. The difficulty is one of scale: the flaw occupies a median of 0.8% of the image and can be as small as 0.01%, while the surrounding part looks correct and nearly identical from photo to photo. Because the imaging rig is fixed, global appearance carries almost no information about where the flaw is; the answer must come from finding the small local deviation from how the part is supposed to look. Twelve different part types are covered, so a solution has to generalise across shapes, materials and failure modes rather than memorise one production line.
+The hard version of that problem is the one a factory faces whenever it starts producing something new. A new part goes into production; thousands of good units come off the line within days; but defective units are rare, and annotating where the damage is takes an expert with a mouse. Waiting to collect and label enough defects for the new part before inspection can begin is exactly the delay the factory cannot afford.
 
-The released data reflects how an inspection line actually accumulates evidence: defective examples are scarce and expensive to annotate, while flawless parts are abundant. Alongside the annotated defective images, every flawless photograph of the same twelve part types is provided, unannotated, so that a solution can learn what "correct" looks like and treat localisation as a search for the deviation.
+This challenge reproduces that situation. Annotated defects are released for **nine** kinds of part. Scoring happens entirely on **three other kinds of part**, for which not a single annotated defect is provided. What is provided for those three, in quantity, is flawless photographs: 3,004 images of undamaged units. A solution therefore cannot learn where damage tends to sit on the parts it will be scored on. It has to learn, from nine other part types, what "damage" looks like as a departure from correct appearance, and then apply that to a shape, material and failure mode it has never seen annotated.
+
+The scale makes it harder. On the scored part types the flaw occupies a median of 0.34% of the image and can be as small as 0.02%, while the surrounding part looks correct and nearly identical from photo to photo. Because the imaging rig is fixed, global appearance carries almost no information about where the flaw is.
 
 ## Objective
 
@@ -14,30 +16,41 @@ Given a photograph of a defective manufactured part, predict four integers descr
 
 This is a coordinate regression task, not a detection task. Each image has exactly one target and produces exactly one output row of four numbers. There is no object class to predict, no confidence score, no variable number of objects to enumerate, no score threshold, and no non-maximum suppression. Scoring compares one predicted region against one reference region per image, with no matching step and no averaging over confidence thresholds.
 
+## Evaluation Protocol
+
+The split is **leave-part-types-out**, not a random partition:
+
+- Twelve part types exist in the release, coded `T01`–`T12`, 100 annotated defective images each.
+- Three of the twelve were drawn by a fixed random seed and withheld. Every test image belongs to one of those three; no annotated defect from them appears anywhere in the training files.
+- The nine remaining types supply all 900 annotated training images.
+- Flawless, unannotated photographs are released for **all twelve types**, including the three scored ones.
+
+This protocol is the point of the challenge. A model fitted to the positions, shapes and textures of defects on the nine training types is being asked to generalise to parts it has never seen damaged. Approaches that implicitly memorise a per-part-type prior score close to zero here: the strongest such rule baseline reaches 0.023 mean IoU, against 0.527 for a reference solver that localises correctly with noise.
+
 ## Dataset
 
-- Annotated defective images: 1,200 in total, drawn from 12 part types, split into 958 training and 242 test images.
-- Independent units: 1,195. Five pairs of images capture the same physical flaw twice; each such pair is one unit and both of its images are kept on the same side of every split.
-- Test images are 20.2% of all annotated images. Approximately 25% of the test units form the public leaderboard and the rest the private leaderboard; membership is assigned per unit and never revealed.
-- Auxiliary flawless images: 9,621, covering the same 12 part types. These carry no boxes and no defects. They are training material only; no test image comes from this pool.
-- Every part type contributes 78–80 training images and 20–22 test images, so no type dominates.
+- Annotated defective images: 1,200 in total across 12 part types, exactly 100 per type, split 900 training / 300 test by part type.
+- Independent units: 1,195. Four groups of images photograph the same physical flaw more than once; every image of a group stays on the same side of every split. The training pool holds 897 units, the test pool 298.
+- Approximately 25% of the test units form the public leaderboard and the rest the private leaderboard: 74 public and 226 private rows. Membership is assigned per unit and never revealed.
+- Auxiliary flawless images: 9,621 across all twelve types, of which 3,004 belong to the three scored types. These carry no boxes and no defects, and no test image comes from this pool.
 - Images are JPEG, three-channel colour, in eight fixed resolutions between 1274×1176 and 1562×960. Every image of a given part type shares one resolution.
+- On the scored part types the reference box covers a median of 0.34% of the image, a 1st percentile of 0.023% and a 99th percentile of 15.7%.
 - No missing values occur in any released file.
 
 ## Files
 
-- `train_defective/` — 958 JPEG images of defective parts, named `<id>.jpg`.
-- `train_labels.csv` — 958 rows, columns `id`, `part_type`, `width`, `height`, `x_min`, `y_min`, `x_max`, `y_max`.
-- `train_normal/` — 9,621 JPEG images of flawless parts, named `<id>.jpg`.
+- `train_defective/` — 900 JPEG images of defective parts, named `<id>.jpg`, from the nine training part types.
+- `train_labels.csv` — 900 rows, columns `id`, `part_type`, `width`, `height`, `x_min`, `y_min`, `x_max`, `y_max`.
+- `train_normal/` — 9,621 JPEG images of flawless parts from all twelve part types, named `<id>.jpg`.
 - `train_normal.csv` — 9,621 rows, columns `id`, `part_type`.
-- `test/` — 242 JPEG images of defective parts, named `<id>.jpg`.
-- `test.csv` — 242 rows, columns `id`, `part_type`, `width`, `height`.
-- `sample_submission.csv` — 242 rows in the required submission format, filled with a whole-image box as a placeholder.
+- `test/` — 300 JPEG images of defective parts, named `<id>.jpg`, from the three held-out part types.
+- `test.csv` — 300 rows, columns `id`, `part_type`, `width`, `height`.
+- `sample_submission.csv` — 300 rows in the required submission format, filled with a whole-image box as a placeholder.
 
 ## Input Fields
 
 - `id` — opaque 12-character lowercase hexadecimal identifier of the image, matching the image filename without its extension.
-- `part_type` — anonymous part-type code, one of `T01` through `T12`. The same code always denotes the same kind of part; the codes carry no ordering.
+- `part_type` — anonymous part-type code, one of `T01` through `T12`. The same code always denotes the same kind of part; the codes carry no ordering. The three codes appearing in `test.csv` do not appear in `train_labels.csv`, and are the three that do appear in `train_normal.csv` without any annotated defect.
 - `width`, `height` — image width and height in pixels.
 - `x_min`, `y_min`, `x_max`, `y_max` (training only) — the reference box, in pixel coordinates.
 
@@ -60,19 +73,27 @@ A submission that violates any structural or format rule receives the floor scor
 
 ## Submission Format
 
-Submit a CSV file with header `id,x_min,y_min,x_max,y_max`, in that column order, containing exactly one row for every `id` in `test.csv` (242 rows, each `id` exactly once). Row order does not matter. Example of the header and one complete row:
+Submit a CSV file with header `id,x_min,y_min,x_max,y_max`, in that column order, containing exactly one row for every `id` in `test.csv` (300 rows, each `id` exactly once). Row order does not matter. Example of the header and one complete row:
 
 ```
 id,x_min,y_min,x_max,y_max
 0250fb240c3e,612,431,689,522
 ```
 
+## Data Provenance
+
+The photographs come from **VisA (Visual Anomaly)**, published by Amazon under **CC BY 4.0**: Zou, Jeong, Pemula, Zhang and Dabeer, *SPot-the-Difference Self-Supervised Pre-training for Anomaly Detection and Segmentation*, arXiv:2207.14315 (ECCV 2022), repository `github.com/amazon-research/spot-diff`. Commercial use and redistribution are permitted with attribution; please cite the paper when using this challenge.
+
+What this challenge adds to that corpus is the evaluation protocol, not the pixels. VisA is distributed with per-image instance masks and is normally used for in-distribution anomaly detection and segmentation, with every category present at training time. Here the annotations are reduced to a single box per image, three whole part types are removed from the annotated training data, part names and filenames are replaced by opaque identifiers, near-duplicate defects are grouped so that no physical flaw crosses a split, and scoring is by mean IoU on the held-out types only.
+
+Because the parent corpus is public and ships the pixel masks this task derives from, blind evaluation rests on the rules below rather than on secrecy.
+
 ## What Not to Use
 
-- The images derive from a corpus that is publicly available under a permissive licence and that ships pixel-level defect annotations. Do not attempt to identify the originating corpus, retrieve the source images, or use any external annotation, mirror, or search service to recover the reference boxes for test images. Solutions must localise defects from the released files alone.
+- Do not retrieve the source corpus, or any mirror, derivative or search service built on it, in order to recover the reference boxes or masks for test images. Matching a released test image back to its source annotation is the one attack this challenge cannot detect automatically, and it is prohibited. Solutions must localise defects from the released files alone.
 - General-purpose pretrained vision backbones are allowed: publicly available weights trained on general photographic corpora, used as initialisation or as frozen feature extractors, are a legitimate and expected part of a strong solution. Fine-tune them on the released images.
-- Checkpoints trained on industrial defect, anomaly-detection or visual-inspection data are not allowed, and neither are weights whose training set includes the images in this challenge or the corpus they derive from. If a public checkpoint advertises anomaly detection, defect segmentation or industrial inspection as its task, do not use it.
+- Checkpoints trained on industrial defect, anomaly-detection or visual-inspection data are not allowed, and neither are weights whose training set includes the images in this challenge or the corpus they derive from. Models published as VisA, MVTec-AD or similar anomaly benchmarks' baselines fall under this ban, whatever their architecture.
 - No labels or annotations may come from outside this release. Pretrained weights supply visual features, not answers.
 - Do not hand-annotate test images, and do not crowdsource their annotation.
-- The auxiliary flawless images are training material. Do not attempt to pair a specific test image with a specific flawless image obtained outside this release in order to read off the difference; using the flawless pool as a general model of correct appearance is the intended use and is allowed.
+- The flawless images are training material, including the 3,004 belonging to the scored part types — using them to model correct appearance is the intended solution path and is explicitly allowed. What is not allowed is obtaining a specific matching flawless image from outside this release in order to difference it against a specific test image.
 - Do not probe the public leaderboard to recover private answers; submission-count limits apply.

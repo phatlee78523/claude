@@ -7,6 +7,10 @@ A competition-ready ML challenge built with the
 predict the bounding box enclosing the defective region. Metric: mean
 intersection-over-union.
 
+**Protocol.** Leave-part-types-out: annotated defects are released for nine part
+types, scoring happens on three types for which no annotated defect exists —
+only flawless reference photographs.
+
 **Source.** VisA (Visual Anomaly), Amazon — **CC BY 4.0**, verified at the
 project repository and the AWS Open Data Registry. Commercial use and
 redistribution permitted with attribution. Cite Zou et al., arXiv:2207.14315.
@@ -55,8 +59,9 @@ seed 20260810, 92 s runtime, 1.8 GB peak RSS.
 | | |
 | --- | --- |
 | Annotated defective images | 1,200 → 1,195 independent units |
-| Train / test | 958 / 242 · public 60 / private 180 |
-| Auxiliary flawless images | 9,621 |
-| Oracle | 1.000 (public and private, gap 0.0) |
-| Private noise floor | sd 0.0107 · 3×sd 0.0321 |
-| Strongest shortcut baseline | 0.0918 vs 0.512 reference solver |
+| Train / test | 900 (9 types) / 300 (3 held-out types) |
+| Public / private test rows | 74 / 226 |
+| Auxiliary flawless images | 9,621, of which 3,004 are of the scored types |
+| Oracle | 1.000 |
+| Private noise floor | sd 0.0106 · 3×sd 0.0319 |
+| Strongest shortcut baseline | 0.0229 vs 0.527 reference solver |
