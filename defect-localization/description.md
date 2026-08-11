@@ -31,6 +31,14 @@ These three constraints compound. A model fitted to the positions, shapes and te
 
 The effect is measurable. A rule baseline that memorises a per-part-type prior from the training data scores 0.0004 under this metric, and predicting the whole image scores 0.0042, against 0.502 for a reference solver that finds the damaged region correctly with noise. Under a plain average the same rule baseline would have scored 0.021 — five times higher — because averaging lets a single easy family carry a solution that has not generalised.
 
+## Design Notes
+
+**How the held-out split was constructed.** The three scored part types were not chosen by hand. The twelve anonymous type codes were sorted, permuted with a fixed published seed (20260810), and the first three taken; the same seed then assigns test units to the public and private leaderboards. Before any splitting, repeat photographs of the same physical defect were grouped into units by comparing the source annotations, so no physical defect can appear on both sides of any boundary. Rebuilding the release from the same inputs reproduces the identical split, byte for byte.
+
+**Why the score is a minimum, not an average.** The metric was chosen against a measured failure mode. Under an overall average, a solution that merely memorises where damage tends to sit on the training types scores 0.021, carried almost entirely by the one held-out family it happens to fit. Under the minimum, the same rule scores 0.0004, while a reference solver that genuinely finds each damaged region drops only from 0.527 to 0.502. The minimum costs an honest solution about five percent and costs the shortcut a factor of fifty — that asymmetry is the reason it was chosen. Its stability was checked before release: across twelve noisy reruns of the reference solver, the worst-type score varies with a standard deviation of 0.014, far below the gaps it needs to resolve.
+
+**Why family identity is withheld on test rows.** Attaching a per-family prior to a test image before looking at the image is the last shortcut the holdout leaves open; removing `part_type` from `test.csv` closes it. Image dimensions narrow the candidate families and appearance settles the rest — the work of associating each test image with its flawless references is deliberately part of the task, because an inspection line is never told what it is looking at.
+
 ## Dataset
 
 - Defective images: 1,200 in total across 12 part types, exactly 100 per type, split 900 training / 300 test by part type. The 900 training images are released **with** their reference coordinates in `train_labels.csv`. The 300 test images are released as **images only** — their coordinates are the withheld answers and appear in no released file. Annotated training material therefore covers nine part types; the three scored types contribute test images and flawless references, and nothing else.
