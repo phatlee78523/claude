@@ -1,6 +1,6 @@
 # Release report — Industrial Defect Localization
 
-Built with the `build-ml-challenges` skill. Source: VisA (Amazon), CC BY 4.0, cited in the challenge statement's Attribution section (no repository link or download path) and in full in the dataset record.
+Built with the `build-ml-challenges` skill. Source: VisA (Amazon), CC BY 4.0, credited in full in the dataset record only — the platform's data-secrecy gate failed the statement even for an academic citation without a link, so the statement carries an anonymous licence note.
 
 ## Design summary
 
@@ -70,8 +70,8 @@ Scoring on the worst held-out type instead of the average cuts the strongest sho
 
 ## Known limitations
 
-- **The parent corpus is public and ships pixel masks.** Matching a released test image back to its source annotation is the one attack this design cannot detect automatically. It is prohibited in `What Not to Use`. The challenge statement cites the source academically, as the novelty review required, but carries no repository link or download path, which is what the data-secrecy check objected to.
-- **The platform's novelty and data-secrecy gates pull in opposite directions.** One demanded explicit attribution in the statement, the other failed the statement for naming and linking a downloadable source. The resolution: the statement carries the academic citation without any link or download path; the dataset record carries the full terms including the repository. Whether both automated gates accept this simultaneously is outside this repo's control.
+- **The parent corpus is public and ships pixel masks.** Matching a released test image back to its source annotation is the one attack this design cannot detect automatically. It is prohibited in `What Not to Use`, and the statement names neither the corpus nor its authors.
+- **The platform's novelty and data-secrecy gates are mutually exclusive on attribution.** The novelty review demanded the source be named in the statement; the data-secrecy check then failed the statement for naming it even without a link, ruling the name alone 'trivially findable via a web search'. Both cannot be satisfied by any text. The statement therefore satisfies the hard gate (secrecy: no name anywhere) and bets the novelty threshold on the protocol depth — withheld family labels plus the worst-type metric — which is the substantive half of what the novelty review asked for. If novelty still fails on the missing name, the contradiction is the platform's to resolve.
 - Three held-out types is a small sample of the type distribution. The leaderboard measures transfer to *these* three parts, not to industrial inspection in general.
 - Boxes are tight bounds over all defects, so on images with more than one flaw the box also covers intervening sound material.
 - IoU is sensitive on the smallest targets, and the scored types have smaller defects than the release average (0.34% versus 0.82% median). This is reflected in the measured noise floor.

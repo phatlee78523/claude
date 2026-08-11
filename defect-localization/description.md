@@ -90,17 +90,13 @@ id,x_min,y_min,x_max,y_max
 0250fb240c3e,612,431,689,522
 ```
 
-## Attribution
+## Licence
 
-The photographs are drawn from the **VisA (Visual Anomaly)** dataset released by Amazon under **CC BY 4.0**, and any use of this challenge should cite:
+The photographs are used under a permissive licence (CC BY 4.0 terms) that allows commercial use, modification and redistribution with attribution. The source corpus, its authors and the full licence terms are credited in the dataset record this challenge is built on; they are deliberately not repeated in this statement, so that the statement itself does not hand solvers a route to the withheld annotations.
 
-> Zou, Y., Jeong, J., Pemula, L., Zhang, D. and Dabeer, O. *SPot-the-Difference Self-Supervised Pre-training for Anomaly Detection and Segmentation.* ECCV 2022. arXiv:2207.14315.
+**What this challenge contributes is not the pixels but the task.** In its original distribution the corpus is used with every category present at training time, per-pixel annotation supplied, and the category of every image known. Here:
 
-The licence permits commercial use, modification and redistribution with attribution. Full licence terms and provenance are recorded in the dataset entry this challenge is built on.
-
-**What this challenge contributes is not the pixels but the task.** In its original form the corpus is used for in-distribution anomaly detection and segmentation, with every category present at training time, per-pixel masks supplied, and the category of each test image known. Here:
-
-- the per-pixel masks are reduced to one box per image and are not redistributed;
+- the per-pixel annotations are reduced to one box per image and are not redistributed;
 - three whole part types are removed from the labelled training data and are the only ones scored, so no labelled defect exists for any part the solution is measured on;
 - the part type of each test image is withheld, so family identity must be recovered from the flawless pool;
 - repeat photographs of a single physical defect are grouped so that none crosses a split;
