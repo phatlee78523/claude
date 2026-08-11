@@ -32,7 +32,7 @@ This protocol is the point of the challenge. A model fitted to the severity dist
 ## Dataset
 
 - Damaged images: 1,200 across 12 part types, exactly 100 per type, split 900 training / 300 test by part type. The 900 training images are released **with** their reference values in `train_labels.csv`. The 300 test images are released as **images only** — their values are the withheld answers and appear in no released file.
-- Independent units: 1,195. Four groups of images photograph the same physical damage more than once; every image of a group stays on the same side of every split. The training pool holds 897 units, the test pool 298.
+- Independent units: 1,195. Four groups of images are repeat photographs of damage already counted — three pairs and one triple, nine images standing for four units — so the 1,200 images correspond to 1,195 distinct units. Every image of a group stays on the same side of every split, and unit counts, not image counts, are what the split balances: the training pool holds 897 units and the test pool 298.
 - Approximately 25% of the test units form the public leaderboard and the rest the private leaderboard: 74 public and 226 private rows. Membership is assigned per unit and never revealed.
 - Auxiliary flawless images: 9,621 across all twelve types, of which 3,004 belong to the three scored types. These carry no reference value and show no damage; no test image comes from this pool.
 - Images are JPEG, three-channel colour, in eight fixed resolutions between 1274×1176 and 1562×960. Every image of a given part type shares one resolution.
