@@ -1,11 +1,10 @@
-# Industrial Defect Localization
+# Surface Damage Extent Estimation
 
 A competition-ready ML challenge built with the
 [`build-ml-challenges`](../build-ml-challenges/) skill.
 
-**Task.** Given a photograph of a manufactured part known to be defective,
-predict the bounding box enclosing the defective region. Metric: mean
-intersection-over-union.
+**Task.** Given a photograph of a damaged manufactured part, estimate the damaged
+area in parts per million of the image. Metric: RMSE of log10, minimise.
 
 **Protocol.** Leave-part-types-out: annotated defects are released for nine part
 types, scoring happens on three types for which no annotated defect exists —
@@ -24,7 +23,7 @@ redistribution permitted with attribution. Cite Zou et al., arXiv:2207.14315.
 - [`rubrics.md`](rubrics.md) — nine initial grading rubrics for the hosting platform.
 - `prepare.py` — deterministic packaging from an extracted VisA release.
 - `platform_prepare.py` — hosting-platform pipeline, `prepare(raw, public, private)`.
-- `grade.py` — mean-IoU grader with strict submission validation.
+- `grade.py` — log-space RMSE grader with strict submission validation.
 - `audit/` — grader, stability, shortcut-baseline and packaging reports.
 
 The image package (1.92 GB) is not committed here; regenerate it from the
@@ -62,6 +61,6 @@ seed 20260810, 92 s runtime, 1.8 GB peak RSS.
 | Train / test | 900 (9 types) / 300 (3 held-out types) |
 | Public / private test rows | 74 / 226 |
 | Auxiliary flawless images | 9,621, of which 3,004 are of the scored types |
-| Oracle | 1.000 |
-| Private noise floor | sd 0.0106 · 3×sd 0.0319 |
-| Strongest shortcut baseline | 0.0229 vs 0.527 reference solver |
+| Oracle | 0.000 (perfect) |
+| Private noise floor | sd 0.0106 · 3×sd 0.0318 |
+| Best constant baseline | 0.784 vs 0.227 reference solver |
