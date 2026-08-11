@@ -1,6 +1,6 @@
 # Release report — Industrial Defect Localization
 
-Built with the `build-ml-challenges` skill. Source: VisA (Amazon), CC BY 4.0, credited in the challenge statement.
+Built with the `build-ml-challenges` skill. Source: VisA (Amazon), CC BY 4.0, credited in the dataset record — deliberately not in the challenge statement.
 
 ## Design summary
 
@@ -53,7 +53,7 @@ The measurable consequence: the strongest rule baseline falls from **0.092** und
 | Shortcut resistance | PASS | every rule baseline ≤ 0.023 against a 0.527 reference solver |
 | Packaging | PASS | no answers in public files, ID sets consistent, all identifiers opaque |
 | Preparation determinism/cost | PASS | fixed seed 20260810; 2 s in-platform, no randomness beyond the seeded permutation |
-| License/provenance | PASS | CC BY 4.0 verified at two primary sources; VisA credited in the challenge statement |
+| License/provenance | PASS | CC BY 4.0 verified at two primary sources; credited in the dataset record, withheld from the challenge statement |
 | Honest learned baseline / agent evaluation | NOT RUN | requires model training compute; remaining open gate |
 
 ## Shortcut baselines (private subset)
@@ -72,7 +72,8 @@ The strongest shortcut reaches 4.3% of the reference solver's score, down from 1
 
 ## Known limitations
 
-- **The parent corpus is public, ships pixel masks, and is now credited by name.** Matching a released test image back to its source annotation is the one attack this design cannot detect automatically. It is prohibited in `What Not to Use`; blind evaluation rests on that rule rather than on obscurity. Attribution is required by the hosting platform and is the correct trade: undisclosed provenance is worse than a stated, rule-enforced boundary.
+- **The parent corpus is public and ships pixel masks.** Matching a released test image back to its source annotation is the one attack this design cannot detect automatically. It is prohibited in `What Not to Use`, and the challenge statement withholds the corpus name, the citation and the link so that the attack is not handed to solvers.
+- **The platform's own gates conflict on this point.** Its novelty review asked for the source to be credited by name in the challenge statement; its data-secrecy check then failed the statement for naming and linking a publicly downloadable source, on the ground that it makes the reference boxes recoverable. The resolution is to separate the two audiences: the challenge statement, which agents read, carries a licence note without a name; the dataset record, published alongside, carries the full citation, repository link and CC BY 4.0 terms. That satisfies the licence, which requires attribution but not attribution inside the problem prompt.
 - Three held-out types is a small sample of the type distribution. The leaderboard measures transfer to *these* three parts, not to industrial inspection in general.
 - Boxes are tight bounds over all defects, so on images with more than one flaw the box also covers intervening sound material.
 - IoU is sensitive on the smallest targets, and the scored types have smaller defects than the release average (0.34% versus 0.82% median). This is reflected in the measured noise floor.

@@ -80,19 +80,17 @@ id,x_min,y_min,x_max,y_max
 0250fb240c3e,612,431,689,522
 ```
 
-## Data Provenance
+## Licence
 
-The photographs come from **VisA (Visual Anomaly)**, published by Amazon under **CC BY 4.0**: Zou, Jeong, Pemula, Zhang and Dabeer, *SPot-the-Difference Self-Supervised Pre-training for Anomaly Detection and Segmentation*, arXiv:2207.14315 (ECCV 2022), repository `github.com/amazon-research/spot-diff`. Commercial use and redistribution are permitted with attribution; please cite the paper when using this challenge.
+The photographs are used under a permissive licence that allows commercial use, modification and redistribution with attribution. The full provenance, citation and licence terms are recorded in the dataset entry this challenge is built on.
 
-What this challenge adds to that corpus is the evaluation protocol, not the pixels. VisA is distributed with per-image instance masks and is normally used for in-distribution anomaly detection and segmentation, with every category present at training time. Here the annotations are reduced to a single box per image, three whole part types are removed from the annotated training data, part names and filenames are replaced by opaque identifiers, near-duplicate defects are grouped so that no physical flaw crosses a split, and scoring is by mean IoU on the held-out types only.
-
-Because the parent corpus is public and ships the pixel masks this task derives from, blind evaluation rests on the rules below rather than on secrecy.
+What this challenge contributes is the evaluation protocol rather than the pixels: the annotations are reduced to a single box per image, three whole part types are removed from the annotated training data and are the only ones scored, part names and filenames are replaced by opaque identifiers, near-duplicate defects are grouped so that no physical flaw crosses a split, and the metric is mean IoU on the held-out types alone.
 
 ## What Not to Use
 
-- Do not retrieve the source corpus, or any mirror, derivative or search service built on it, in order to recover the reference boxes or masks for test images. Matching a released test image back to its source annotation is the one attack this challenge cannot detect automatically, and it is prohibited. Solutions must localise defects from the released files alone.
+- Do not attempt to identify the corpus these photographs were drawn from, and do not use any external mirror, derivative, reverse-image search or annotation service to recover reference boxes or masks for test images. Solutions must localise defects from the released files alone.
 - General-purpose pretrained vision backbones are allowed: publicly available weights trained on general photographic corpora, used as initialisation or as frozen feature extractors, are a legitimate and expected part of a strong solution. Fine-tune them on the released images.
-- Checkpoints trained on industrial defect, anomaly-detection or visual-inspection data are not allowed, and neither are weights whose training set includes the images in this challenge or the corpus they derive from. Models published as VisA, MVTec-AD or similar anomaly benchmarks' baselines fall under this ban, whatever their architecture.
+- Checkpoints trained on industrial defect, anomaly-detection or visual-inspection data are not allowed, and neither are weights whose training set includes the images in this challenge. If a public checkpoint advertises anomaly detection, defect segmentation or industrial inspection as its task, or is published as a baseline for an industrial-inspection benchmark, do not use it, whatever its architecture.
 - No labels or annotations may come from outside this release. Pretrained weights supply visual features, not answers.
 - Do not hand-annotate test images, and do not crowdsource their annotation.
 - The flawless images are training material, including the 3,004 belonging to the scored part types — using them to model correct appearance is the intended solution path and is explicitly allowed. What is not allowed is obtaining a specific matching flawless image from outside this release in order to difference it against a specific test image.
