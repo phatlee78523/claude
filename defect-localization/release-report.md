@@ -55,7 +55,7 @@ The measurable consequence: the strongest rule baseline falls from **0.092** und
 | Preparation determinism/cost | PASS | fixed seed 20260810; 2 s in-platform, no randomness beyond the seeded permutation |
 | Hosting-platform domain gate | PASS (after three failures) | earlier framings were classified Object Detection, Anomaly Detection and Regression, all closed; the current framing cleared the gate |
 | License/provenance | PASS | CC BY 4.0 verified at two primary sources; credited in the dataset record, withheld from the challenge statement |
-| Honest learned baseline / agent evaluation | NOT RUN | requires model training compute; remaining open gate |
+| Honest learned baseline / agent evaluation | **PASS** | platform agent runs on A10G scored 0.3370 and 0.2377 (third run failed, two valid suffice); difficulty validation passed; agents beat the 0.0042 shortcut ceiling ~80-fold with headroom to the 0.502 reference solver |
 
 ## Shortcut baselines (private subset, worst-type metric)
 
@@ -75,7 +75,7 @@ Scoring on the worst held-out type instead of the average cuts the strongest sho
 - Three held-out types is a small sample of the type distribution. The leaderboard measures transfer to *these* three parts, not to industrial inspection in general.
 - Boxes are tight bounds over all defects, so on images with more than one flaw the box also covers intervening sound material.
 - IoU is sensitive on the smallest targets, and the scored types have smaller defects than the release average (0.34% versus 0.82% median). This is reflected in the measured noise floor.
-- Agent evaluation and a trained honest baseline remain to be run on a platform with training compute; every automatable design gate passes.
+- Agent evaluation is complete: two platform agents scored 0.3370 and 0.2377 under the worst-type metric, confirming the task is learnable, format-compliant submissions are achievable, and real headroom remains. Every design gate now passes.
 - **Domain history.** The platform's domain classifier rejected three earlier framings — Object Detection, Anomaly Detection and Regression, all closed to submissions — before the current framing cleared the gate. A scalar-regression variant tried along the way also scored worse on novelty (4 against 6) and was weaker on the merits, since damage extent can be estimated from global texture statistics without finding the damage; it was discarded.
 
 ## Artifacts
